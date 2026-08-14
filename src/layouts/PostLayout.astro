@@ -1,0 +1,82 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  readingTime?: number;
+}
+
+const { post, readingTime } = Astro.props;
+const { data } = post;
+
+const pubDateStr = data.pubDate.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const updatedDateStr = data.updatedDate
+  ? data.updatedDate.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  image={data.cover ?? '/og-default.svg'}
+  type="article"
+>
+  <article class="mx-auto max-w-reading px-4 py-14 sm:px-6 sm:py-20">
+    <a
+      href="/blog"
+      class="font-pixel text-sm text-faint transition-colors duration-150 hover:text-brand"
+      >← 返回文章列表</a
+    >
+
+    <div class="mt-8 border-y-2 border-ink py-3">
+      <div class="flex flex-wrap items-center gap-3 font-pixel text-sm text-faint">
+        <span class="bg-brand px-2.5 py-0.5 text-ink">{data.category}</span>
+        <time datetime={data.pubDate.toISOString()}>{pubDateStr}</time>
+        {updatedDateStr && <span>· 更新于 {updatedDateStr}</span>}
+        {readingTime && <span>· {readingTime} 分钟阅读</span>}
+      </div>
+    </div>
+
+    <h1
+      class="mt-8 text-[clamp(28px,5vw,44px)] font-bold leading-tight text-foreground"
+    >
+      {data.title}
+    </h1>
+    <p class="mt-4 text-lg leading-relaxed text-body">{data.description}</p>
+
+    <hr class="pixel-divider my-10" />
+
+    <div class="content">
+      <slot />
+    </div>
+
+    {
+      data.tags.length > 0 && (
+        <div class="mt-14 border-t-2 border-line pt-8">
+          <p class="font-pixel text-sm text-faint">标签</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            {data.tags.map((tag) => (
+              <span class="border-2 border-ink px-3 py-1 font-pixel text-sm text-foreground">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    <div class="mt-14">
+      <a
+        href="/blog"
+        class="pixel-btn"
+      >
+        ← 全部文章
+      </a>
+    </div>
+  </article>
+</BaseLayout>
