@@ -1,0 +1,399 @@
+@import "tailwindcss";
+
+/* 暗色模式：用 data-theme 属性方案（非 .dark class），匹配 BaseLayout 的防闪脚本 */
+@variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* ============================================================
+   设计 Token（全部用 CSS 变量，禁止硬编码颜色）
+   风格定位：像素艺术 / 极客复古 / 现代无衬里
+   ============================================================ */
+:root {
+  /* 画布：暖白 + 纸张纹理感 */
+  --bg-primary: #fafaf7;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f0f0eb;
+
+  /* 文字 */
+  --text-primary: #0a0a0a;
+  --text-secondary: #2a2a2a;
+  --text-muted: #8a8a8a;
+
+  /* 像素绿（取自 IP 形象眼睛的亮绿） */
+  --color-accent: #9bc53d;
+  --color-accent-hover: #7fa82e;
+  --color-accent-soft: #e8f5d0;
+
+  /* 黑边/像素描边 */
+  --border-default: #e5e5e0;
+  --border-strong: #d6d6d0;
+  --color-ink: #0a0a0a;
+  --color-ink-soft: #1a1a1a;
+
+  /* 字体 */
+  --font-display: "Press Start 2P", "VT323", "Noto Serif SC", "PingFang SC", monospace;
+  --font-pixel: "VT323", "Press Start 2P", "Noto Serif SC", monospace;
+  --font-body: "Inter", "Noto Sans SC", system-ui, "PingFang SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, monospace;
+
+  /* 尺寸 */
+  --radius: 0;
+  --radius-soft: 4px;
+  --container: 1200px;
+  --reading: 720px;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0a0a0a;
+  --bg-surface: #141414;
+  --bg-subtle: #1f1f1f;
+
+  --text-primary: #fafafa;
+  --text-secondary: #d0d0d0;
+  --text-muted: #888888;
+
+  --color-accent: #b5d75e;
+  --color-accent-hover: #9bc53d;
+  --color-accent-soft: #1a2410;
+
+  --border-default: #2a2a2a;
+  --border-strong: #3a3a3a;
+
+  color-scheme: dark;
+}
+
+/* ============================================================
+   映射到 Tailwind 主题
+   ============================================================ */
+@theme inline {
+  --color-canvas: var(--bg-primary);
+  --color-surface: var(--bg-surface);
+  --color-subtle: var(--bg-subtle);
+  --color-foreground: var(--text-primary);
+  --color-body: var(--text-secondary);
+  --color-faint: var(--text-muted);
+  --color-brand: var(--color-accent);
+  --color-brand-hover: var(--color-accent-hover);
+  --color-brand-soft: var(--color-accent-soft);
+  --color-line: var(--border-default);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--color-ink);
+
+  --font-display: var(--font-display);
+  --font-pixel: var(--font-pixel);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --container-content: var(--container);
+  --container-reading: var(--reading);
+
+  --radius-base: var(--radius);
+  --radius-soft: var(--radius-soft);
+}
+
+/* ============================================================
+   基础样式
+   ============================================================ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  /* Hero/品牌大字用像素字体 */
+  h1.font-display,
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+
+  /* 小标签/导航/按钮用像素字体（保持与参考图一致的"小字像素"感） */
+  h2.font-pixel,
+  h3.font-pixel,
+  .font-pixel {
+    font-family: var(--font-pixel);
+    font-weight: 400;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-ink);
+  }
+}
+
+/* ============================================================
+   像素字体工具（保证中文回退 + 大小微调）
+   ============================================================ */
+.font-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.02em;
+}
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ============================================================
+   像素艺术装饰系统
+   ============================================================ */
+
+/* 单个像素方块（用 box-shadow 模拟像素堆叠） */
+.pixel-block {
+  position: relative;
+  display: inline-block;
+  width: var(--px, 8px);
+  height: var(--px, 8px);
+  background: currentColor;
+  image-rendering: pixelated;
+}
+
+/* 像素方块群（用伪元素堆叠生成散布图案，背景层） */
+.pixel-deco {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 用渐变模拟多个像素方块（白/黑/绿随机散布） */
+.pixel-pattern {
+  background-image:
+    /* 散落的绿色方块 */
+    radial-gradient(circle at 12% 18%, var(--color-accent) 0 4px, transparent 5px),
+    radial-gradient(circle at 88% 14%, var(--color-ink) 0 6px, transparent 7px),
+    radial-gradient(circle at 22% 82%, var(--color-accent) 0 5px, transparent 6px),
+    radial-gradient(circle at 76% 78%, var(--color-accent) 0 4px, transparent 5px),
+    radial-gradient(circle at 50% 50%, var(--color-ink) 0 3px, transparent 4px),
+    radial-gradient(circle at 4% 64%, var(--color-ink) 0 5px, transparent 6px),
+    radial-gradient(circle at 96% 36%, var(--color-ink) 0 4px, transparent 5px);
+}
+
+/* 像素分隔线：粗黑实线 + 短绿条 */
+.pixel-divider {
+  height: 2px;
+  background: var(--color-ink);
+  position: relative;
+  border: 0;
+}
+.pixel-divider::before,
+.pixel-divider::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-accent);
+}
+.pixel-divider::before { left: 0; }
+.pixel-divider::after { right: 0; }
+
+/* 像素按钮基础 */
+.pixel-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-pixel);
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  padding: 0.65rem 1.4rem;
+  background: var(--color-ink);
+  color: #fff;
+  border: 2px solid var(--color-ink);
+  box-shadow: 4px 4px 0 0 var(--color-ink);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  cursor: pointer;
+  text-transform: none;
+  user-select: none;
+}
+.pixel-btn:hover {
+  background: var(--color-accent);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+
+/* 像素绿色 CTA 变体 */
+.pixel-btn--accent {
+  background: var(--color-accent);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+.pixel-btn--accent:hover {
+  background: var(--color-ink);
+  color: var(--color-accent);
+}
+
+/* 像素方框卡片（封面图带像素描边） */
+.pixel-frame {
+  position: relative;
+  background: var(--bg-surface);
+  border: 2px solid var(--color-ink);
+  box-shadow: 4px 4px 0 0 var(--color-ink);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.pixel-frame:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-accent);
+}
+.pixel-frame:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+
+/* 像素艺术风格的图片渲染（IP 图要保持锐利的像素边缘） */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* 像素眼睛动画（点缀用，给静态 IP 一点生气） */
+@keyframes pixel-blink {
+  0%, 92%, 100% { opacity: 1; }
+  94%, 98% { opacity: 0.3; }
+}
+
+/* ============================================================
+   长文排版（博客正文）
+   ============================================================ */
+.content {
+  color: var(--text-secondary);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+.content > * + * {
+  margin-top: 1.25em;
+}
+.content h2 {
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1.875rem;
+  line-height: 1.25;
+  margin-top: 2.5em;
+  font-weight: 700;
+}
+.content h3 {
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  margin-top: 2em;
+  font-weight: 600;
+}
+.content a {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 150ms ease;
+}
+.content a:hover {
+  color: var(--color-accent);
+}
+.content strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.content ul,
+.content ol {
+  padding-left: 1.5em;
+}
+.content ul {
+  list-style: disc;
+}
+.content ol {
+  list-style: decimal;
+}
+.content li {
+  margin-top: 0.5em;
+}
+.content li::marker {
+  color: var(--color-accent-hover);
+}
+.content blockquote {
+  border-left: 4px solid var(--color-accent);
+  padding: 0.25em 0 0.25em 1.25em;
+  color: var(--text-secondary);
+  font-style: italic;
+  background: var(--bg-subtle);
+  margin: 1.5em 0;
+}
+.content code {
+  font-family: var(--font-mono);
+  background: var(--bg-subtle);
+  padding: 0.15em 0.4em;
+  border-radius: 0;
+  font-size: 0.9em;
+  border: 1px solid var(--border-default);
+}
+.content pre {
+  background: var(--bg-subtle);
+  padding: 1em 1.25em;
+  border: 2px solid var(--color-ink);
+  overflow-x: auto;
+}
+.content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875rem;
+  border: 0;
+}
+.content img {
+  border: 2px solid var(--color-ink);
+}
+.content hr {
+  border: 0;
+  height: 2px;
+  background: var(--color-ink);
+  margin: 2.5em 0;
+}
+
+/* ============================================================
+   主题切换图标显隐（依据 data-theme）
+   ============================================================ */
+.theme-toggle .icon-sun {
+  display: none;
+}
+.theme-toggle .icon-moon {
+  display: inline-flex;
+}
+[data-theme="dark"] .theme-toggle .icon-sun {
+  display: inline-flex;
+}
+[data-theme="dark"] .theme-toggle .icon-moon {
+  display: none;
+}
+
+/* ============================================================
+   尊重 prefers-reduced-motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
