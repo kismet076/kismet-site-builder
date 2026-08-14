@@ -1,0 +1,78 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { readingTime } from '../utils/reading-time';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  /** 占位封面图（无 frontmatter cover 时使用） */
+  placeholder?: string;
+}
+
+const { post, placeholder } = Astro.props;
+const { data } = post;
+const dateStr = data.pubDate.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+const minutes = readingTime(post.body ?? '');
+
+// 占位封面：每篇文章用统一像素化的渐变 + 文字首字
+const fallbackCover = (() => {
+  const palettes = [
+    ['#1a1a1a', '#2d2d2d'],
+    ['#1f2937', '#374151'],
+    ['#0f172a', '#334155'],
+    ['#18181b', '#3f3f46'],
+    ['#14532d', '#166534'],
+    ['#1c1917', '#44403c'],
+  ];
+  const idx = data.title.length % palettes.length;
+  const [from, to] = palettes[idx];
+  return `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
+})();
+
+// 用标题第一个有效字符作占位文字（中文友好）
+const firstChar = (data.title.match(/[\u4e00-\u9fa5A-Za-z0-9]/) ?? ['文'])[0];
+---
+
+<a href={`/blog/${post.id}/`} class="group pixel-frame block">
+  <!-- 封面占位（深色渐变 + 像素字首字） -->
+  <div
+    class="relative flex aspect-[16/10] items-center justify-center overflow-hidden"
+    style={`background: ${fallbackCover};`}
+  >
+    <!-- 像素装饰：左上小绿块、右下小墨块 -->
+    <div class="absolute left-3 top-3 h-3 w-3 bg-accent" aria-hidden="true"></div>
+    <div class="absolute bottom-3 right-3 h-2.5 w-2.5 bg-white/40" aria-hidden="true"></div>
+    <span
+      class="font-display text-5xl text-white/85 select-none"
+      aria-hidden="true"
+    >
+      {firstChar}
+    </span>
+    <!-- 分类标签（深色背景上） -->
+    <span
+      class="absolute left-3 bottom-3 bg-accent px-2 py-0.5 font-pixel text-xs text-ink"
+    >
+      {data.category}
+    </span>
+  </div>
+
+  <!-- 标题区 -->
+  <div class="p-5">
+    <h3
+      class="font-display text-lg leading-snug text-foreground transition-colors duration-150 group-hover:text-brand"
+    >
+      {data.title}
+    </h3>
+    <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-body">
+      {data.description}
+    </p>
+    <div class="mt-4 flex items-center gap-3 font-pixel text-xs text-faint">
+      <time datetime={data.pubDate.toISOString()}>{dateStr}</time>
+      <span aria-hidden="true">·</span>
+      <span>{minutes} 分钟阅读</span>
+    </div>
+  </div>
+</a>
