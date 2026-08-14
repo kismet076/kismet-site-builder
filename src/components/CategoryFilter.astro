@@ -1,0 +1,66 @@
+---
+import { CATEGORIES } from '../config';
+
+const filters = ['全部', ...CATEGORIES];
+---
+
+<div class="flex flex-wrap gap-2" id="category-filter" role="group" aria-label="按分类筛选文章">
+  {
+    filters.map((c, i) => (
+      <button
+        type="button"
+        data-filter={c}
+        aria-pressed={i === 0 ? 'true' : 'false'}
+        class={`category-chip border-2 px-4 py-1.5 font-pixel text-sm transition-colors duration-150 ${
+          i === 0
+            ? 'border-ink bg-brand text-ink'
+            : 'border-line text-body hover:border-ink hover:text-foreground'
+        }`}
+      >
+        {c}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const chips = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('#category-filter .category-chip')
+  );
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-category]'));
+
+  function applyFilter(filter: string) {
+    cards.forEach((card) => {
+      const match = filter === '全部' || card.getAttribute('data-category') === filter;
+      card.classList.toggle('hidden', !match);
+    });
+    chips.forEach((chip) => {
+      const active = chip.getAttribute('data-filter') === filter;
+      chip.setAttribute('aria-pressed', String(active));
+      chip.classList.toggle('border-ink', active);
+      chip.classList.toggle('bg-brand', active);
+      chip.classList.toggle('text-ink', active);
+      chip.classList.toggle('border-line', !active);
+      chip.classList.toggle('text-body', !active);
+    });
+  }
+
+  // 初始：从 URL ?category= 同步
+  const params = new URLSearchParams(window.location.search);
+  const initial = params.get('category') || '全部';
+  applyFilter(initial);
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const filter = chip.getAttribute('data-filter') || '全部';
+      applyFilter(filter);
+      const url = new URL(window.location.href);
+      if (filter === '全部') {
+        url.searchParams.delete('category');
+      } else {
+        url.searchParams.set('category', filter);
+      }
+      window.history.replaceState({}, '', url);
+    });
+  });
+</script>
