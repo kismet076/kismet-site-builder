@@ -1,0 +1,32 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  intro?: string;
+  /** 可选：自定义标题字体类（默认 font-display = 像素字体） */
+  titleClass?: string;
+}
+
+const { title, description, intro, titleClass = 'font-display' } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="mx-auto max-w-content px-4 py-16 sm:px-6 sm:py-20">
+    <header class="max-w-reading border-b-2 border-ink pb-8">
+      <h1
+        class:list={[
+          titleClass,
+          'text-[clamp(32px,5vw,48px)] leading-[1.1] text-foreground',
+        ]}
+      >
+        {title}
+      </h1>
+      {intro && <p class="mt-4 text-lg leading-relaxed text-body">{intro}</p>}
+    </header>
+    <div class="mt-10">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>
