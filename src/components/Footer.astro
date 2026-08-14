@@ -1,0 +1,40 @@
+---
+import { SITE, FOOTER_NAV } from '../config';
+import SocialLinks from './SocialLinks.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t-2 border-ink bg-subtle">
+  <div class="mx-auto max-w-content px-4 py-10 sm:px-6">
+    <!-- 顶部：左社交 / 中签名 / 右社交 -->
+    <div class="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
+      <SocialLinks size="sm" />
+      <p class="font-pixel text-center text-base text-foreground">
+        「{SITE.corePhilosophy}」
+      </p>
+      <SocialLinks size="sm" />
+    </div>
+
+    <hr class="pixel-divider my-7" />
+
+    <!-- 底部：版权 + 次级链接 -->
+    <div
+      class="flex flex-col items-center gap-3 text-xs text-faint sm:flex-row sm:justify-between"
+    >
+      <p>© {year} {SITE.name} · 保留所有权利</p>
+      <div class="flex items-center gap-4">
+        {
+          FOOTER_NAV.map((item) => (
+            <a
+              href={item.href}
+              class="font-pixel text-sm transition-colors duration-150 hover:text-brand"
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</footer>
